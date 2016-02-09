@@ -10,19 +10,16 @@ var todos = [];
 
 var todoNextId = 1;
 
-app.use(bodyParser.json);
-
 app.get('/', function(req, res){
 	res.send('todo API root');
 });
 
-
+app.use(bodyParser.json());
 
 //GET /todos
 app.get('/todos', function(req, res){
 	res.json(todos);
 });
-
 
 //GET /todos/:id
 app.get('/todos/:id', function(req, res){
@@ -41,18 +38,20 @@ app.get('/todos/:id', function(req, res){
 	}else{
 		res.status(404).send();
 	}
-
 });
 
-//POST request /todos/:id
-
+//POST request /todos
 app.post('/todos', function(req, res){
 	var body = req.body;
 
-	console.log('description: ' + body.description);
+	body.id = todoNextId++;
+
+	todos.push(body);
 
 	res.json(body);
 });
+
+
 
 app.listen(PORT, function(){
 	console.log('Express Listening on port ' + PORT + '!');
