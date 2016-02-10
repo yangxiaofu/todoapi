@@ -17,7 +17,22 @@ app.use(bodyParser.json());
 
 //GET /todos
 app.get('/todos', function(req, res){
-	res.json(todos);
+	var queryParams = req.query;
+	var filteredTodos = todos;
+
+	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true'){
+
+		filteredTodos = _.where(filteredTodos, {completed: true});
+
+	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+
+		filteredTodos = _.where(filteredTodos, {completed: false});
+
+	} else {
+		res.send('It goes into an error');
+	}
+
+	res.json(filteredTodos);
 });
 
 
@@ -36,8 +51,9 @@ app.get('/todos/:id', function(req, res){
 
 
 
-//POST request /todos
+//POST request /todos?completed=true
 app.post('/todos', function(req, res){
+
 	var body = req.body;
 
 	if (!_.isBoolean(body.completed) || (!_.isString(body.description)) || (body.description.trim()).length === 0) {
