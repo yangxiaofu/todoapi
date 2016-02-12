@@ -4,7 +4,6 @@ var _ = require('underscore');
 
 var db = require('./db.js');
 
-
 var app = express();
 var PORT = process.env.PORT || 3000;
 var todos = [];
@@ -19,44 +18,51 @@ app.use(bodyParser.json());
 
 //GET /todos
 app.get('/todos', function(req, res) {
-	var queryParams = req.query;
-	var filteredTodos = todos;
 
-	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
+	var query = req.query;
 
-		filteredTodos = _.where(filteredTodos, {
-			completed: true
-		});
+	var where = {};
 
-	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
+	if (query.hasOwnProperty('completed') && query.completed === 'true'){
 
-		filteredTodos = _.where(filteredTodos, {
-			completed: false
-		});
+		where.completed = true;
 
-	} else {
-		res.send('It goes into an error');
+	} else if (query.hasOwnProperty('completed') && query.completed === 'false') {
+
+		where.completed = false;
+
 	}
 
-	"Go to work on Saturday".indexOf('work');
+	if (query.hasOwnProperty('q') && query.q.length > 0) {
+		where.description = {
+			$like: '%' + query.q + '%'
+		};
+	}
 
-	res.json(filteredTodos);
+	db.todo.findAll({where: where}).then(function(todos){
+		res.json(todos);
+	}, function (e) {
+		res.status(500).send();
+	});
+
 });
 
 
 //GET /todos/:id
 app.get('/todos/:id', function(req, res) {
+
 	var todoId = parseInt(req.params.id, 10); //always use ten here. 
 
-	var matchedTodo = _.findWhere(todos, {
-		id: todoId
+	db.todo.findById(todoId).then(function(todo) {
+		if (!!todo) {
+			res.json(todo.toJSON());
+		} else {
+			res.status(404).send()
+		}
+	}, function(e) {
+		res.status(500).send();
 	});
 
-	if (matchedTodo) {
-		res.json(matchedTodo);
-	} else {
-		res.status(404).send();
-	}
 });
 
 
@@ -71,17 +77,6 @@ app.post('/todos', function(req, res) {
 		res.status(400).json(e);
 	});
 
-	// if (!_.isBoolean(body.completed) || (!_.isString(body.description)) || (body.description.trim()).length === 0) {
-	// 	return res.status(400).send();
-	// }
-
-	// // add id field
-	// body.id = todoNextId++;
-
-	// //push body into array
-	// todos.push(body);
-
-	// res.json(body);
 });
 
 
